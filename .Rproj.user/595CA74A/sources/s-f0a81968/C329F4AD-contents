@@ -1,0 +1,64 @@
+library(shiny)
+library(shinydashboard)
+library(shinycssloaders)
+library(shinythemes)
+library(plotly)
+library(DT)
+library(dashboardthemes)
+library(leaflet)
+library(leaflet.extras)
+
+
+ui <- dashboardPage(
+    dashboardHeader(
+        title = "Weather Forecast App"
+    ),
+    
+    dashboardSidebar(
+        sidebarMenu(
+            menuItem("Manual", tabName = "Manual"),
+            
+            menuItem("Map", tabName = "Map"),
+            numericInput("lat", label = "lat", value = 30),
+            numericInput("lon", label = "lon", value = 140),
+            
+            menuItem("Table", tabName = "Table"),
+            
+            menuItem("License", tabName = "License"),
+            
+            actionButton("trigger", label = "update")
+        )
+    ),
+    
+    dashboardBody(
+        
+        shinyDashboardThemes("blue_gradient"),
+        
+        tabItems(
+            tabItem(tabName = "Map",
+                    titlePanel("Location Map"),
+                    textOutput("Click_text"  %>% lapply(htmltools::HTML)),
+                    box(
+                        title = "World Map",
+                        status = "info",
+                        solidHeader = T,
+                        width = 12,
+                        height = 700,
+                        leafletOutput("map", height = 600)
+                    )),
+            tabItem(tabName = "Manual",
+                    titlePanel("How to use"),
+                    ),
+            tabItem(tabName = "Table",
+                    titlePanel("Download CSV")),
+            tabItem(tabName = "License",
+                    titlePanel("License"),
+                    h5("<a href='https://open-meteo.com/'>Weather data by Open-Meteo.com</a>" %>% lapply(htmltools::HTML)) )
+        )
+        
+        # tabItem("table", dataTableOutput("table"))
+    )
+)
+
+
+

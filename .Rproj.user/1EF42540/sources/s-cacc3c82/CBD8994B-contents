@@ -1,0 +1,33 @@
+library(shiny)
+library(shinydashboard)
+library(shinycssloaders)
+library(shinythemes)
+library(plotly)
+library(DT)
+
+
+ui <- dashboardPage(
+    dashboardHeader(
+        title = "weather forecast"
+        ),
+    
+    dashboardSidebar(
+        sidebarMenu(
+            menuItem("Map", tabName = "Map"),
+            menuItem("Manual", tabName = "Manual"),
+            
+            numericInput("lat", label = "lat", value = 30),
+            numericInput("lon", label = "lon", value = 140),
+            
+            actionButton("trigger", label = "update")
+        )
+    ),
+    
+    dashboardBody(
+        # shinyDashboardThemes(theme = "blue_gradient"),
+        mainPanel("table", dataTableOutput("table"))
+                )
+            )
+        
+        
+    

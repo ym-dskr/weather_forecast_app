@@ -1,0 +1,13 @@
+library(tidyverse)
+library(httr)
+library(jsonlite)
+library(lubridate)
+
+
+lng1 <- 128
+lat1 <- 31
+lng2 <- 147
+lat2 <- 45
+
+# manual
+# manual <- read_lines("text/manual.txt")

@@ -1,0 +1,13 @@
+name: weather_forecast
+title: weather_forecast
+username:
+account: sub-dskr
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 5806003
+bundleId: 5659303
+url: https://sub-dskr.shinyapps.io/weather_forecast/
+when: 1646795695.12571
+lastSyncTime: 1646795695.12572
+asMultiple: FALSE
+asStatic: FALSE

@@ -1,0 +1,26 @@
+{
+    "id": "AFA885FC",
+    "path": "~/foobar/Study/weather_forecast_app/weather_forecast/ui.R",
+    "project_path": "ui.R",
+    "type": "r_source",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1646666456060.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "124,123",
+        "scrollLine": "112"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1646795334,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1646795334942,
+    "read_only": false,
+    "read_only_alternatives": []
+}

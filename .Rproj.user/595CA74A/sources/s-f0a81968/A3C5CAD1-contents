@@ -1,0 +1,1303 @@
+shinyServer(function(input, output, session) {
+  
+
+  output$map <- renderLeaflet({
+    
+    input$trigger2
+    
+    #kanko <- paste0("https://www.chiikinogennki.soumu.go.jp/k-cloud-api/v001/kanko/",
+    #                "公園", 
+    #                "/json?place=",
+    #                "東京都",
+    #                "&limit=", 10)
+    
+    #kanko <- iconv(kanko, to="UTF-8")
+    
+    ##kanko <- paste0("https://www.chiikinogennki.soumu.go.jp/k-cloud-api/v001/kanko/",
+    ##                isolate(input$kanko_S), 
+    ##                "/json?place=",
+    ##                isolate(input$city),
+    ##                "&limit=", 50)　
+    
+    
+    #
+    ##kanko <-  URLencode(kanko)
+    ##kanko_r <- fromJSON(kanko, simplifyVector = TRUE)
+    
+    #geo <- paste0("https://www.geocoding.jp/api/?v=1.1&q=",
+    #              kanko_r$tourspots$place$city$written,
+    #              kanko_r$tourspots$place$street$written)
+    
+    
+    #body1
+    #k <- c()
+    #for(i in 1:length(kanko_r$tourspots$place$city$written)){
+    #  if(is.null(kanko_r$tourspots$descs[[i]][[1]][[1]])){
+    #    kanko_r$tourspots$descs[[i]][[1]][[1]] <- " "}
+    #  k <- c(k, kanko_r$tourspots$descs[[i]][[1]][[1]])
+    #  }
+      
+    
+    
+    #lat <- c()
+    #lng <- c()
+    #img <- c()
+    
+    #for(i in 1:length(geo)){
+    #  page <- read_html(geo[i])
+    #  
+    #  if(is.null(kanko_r$tourspots$views[[i]]$fid[1])){
+    #    img <- c(img, "NA")}else{img <- c(img, kanko_r$tourspots$views[[i]]$fid[1])}
+      
+      
+    #  page %>% html_nodes("lat") %>% html_text() -> lat_i
+    #  page %>% html_nodes("lng") %>% html_text() -> lng_i
+    
+      
+      
+    #  lat <- c(lat, lat_i)
+    #  lng <- c(lng, lng_i)
+    #  Sys.sleep(5)
+    #}
+    
+    
+    ##kankochi <- as.data.frame(kanko_r$tourspot$mng$refbase)
+    ##names(kankochi) <- "base"
+    
+    ##geo_list <- kankochi %>% left_join(geo_end, by = "base")
+    
+    #geo_list <- data.frame(lat, lng, stringsAsFactors = F)
+    geo_list <- geo_end %>% filter(V5 == isolate(input$kanko_S), pref == isolate(input$city)) 
+    
+    
+    ana_map <- leaflet() %>% addTiles(group="OSM") %>%
+      fitBounds(lng1, lat1, lng2, lat2) %>% 
+      addTiles(urlTemplate = "http://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga", 
+               attribution = 'Google', group = "Google") %>% 
+      addProviderTiles("Esri.WorldImagery", group = "Image") %>% 
+      addLayersControl(baseGroups=c("OSM","Image", "Google"), options=layersControlOptions(collapsed = FALSE)) %>%
+      addScaleBar(position="bottomleft")%>% 
+      addMeasure(position = "topright", primaryLengthUnit = "meters", 
+                 primaryAreaUnit = "sqmeters", activeColor = "#3D535D",
+                 completedColor = "#7D4479") %>% 
+      addMiniMap(position="bottomright") %>% 
+      addResetMapButton() %>%
+      addSearchOSM()
+   
+     ana_map %>% 
+       addMarkers(lng = airprt_info$lon,
+                  lat = airprt_info$lat,
+                  icon = icon2,
+                  label = paste0('<strong>', "Name(English) : ", airprt_info$Name, '</strong>', "<br>",
+                                 '<strong>', "Name(Japanese) :", airprt_info$airport, '</strong>', "<br>",
+                                 '<strong>', "City :", airprt_info$City, '</strong>', "<br>",
+                                 '<strong>', "Country : ", airprt_info$Country, '</strong>', "<br>",
+                                 '<strong>', "Timezone(UTC+) : ", airprt_info$timezone, '</strong>', "<br>") %>%
+                    lapply(htmltools::HTML),
+                  layerId = airprt_info$`odpt:originAirport`) %>% 
+     addMarkers(lng = as.numeric(geo_list$lng),
+                lat = as.numeric(geo_list$lat),
+                icon = icon4,
+                popup = paste0(paste0("<img src='https://www.chiikinogennki.soumu.go.jp/k-cloud-api/v001/kanko/view/",
+                                                  geo_list$base,"/",geo_list$img, "'", " width='100%' height='100%'"," />"), "<br>",
+                               '<strong>', paste0(#"<a href =", "'",
+                                                  #kanko_r$tourspots$place$url, "'", "target = '_blank'", ">",
+                                                  geo_list$name1,
+                                                 "</a>"),'</strong>', "<br>", 
+                               '<strong>', "Info :<br>", geo_list$info, "<br>", '</strong>', "<br>",
+                               '<strong>', "Phone :<br>", geo_list$phone, '</strong>', "<br>") %>%
+                  lapply(htmltools::HTML),
+                clusterOptions = markerClusterOptions(),
+                layerId = paste(geo_list$lng, geo_list$lat, sep = ",")) -> map
+     map
+      
+    
+    
+      })
+  
+  
+  observeEvent(input$map_marker_click, { 
+    p <- input$map_marker_click
+    p <- p$id
+    #kanko_lat <- p$lat
+    #kanko_lng <- p$lng
+  
+  output$Click_text <- renderText({
+    p
+  })
+  })
+  
+  
+  output$table <- renderDataTable({
+    input$trigger2
+    
+    ##kanko <- paste0("https://www.chiikinogennki.soumu.go.jp/k-cloud-api/v001/kanko/",
+  ##                  isolate(input$kanko_S), 
+    ##                "/json?place=",
+    ##                isolate(input$city),
+    ##                "&limit=", 50)　
+    #
+    ##kanko <-  URLencode(kanko)
+    ##kanko_r <- fromJSON(kanko, simplifyVector = TRUE)
+    
+    ##kankochi <- as.data.frame(kanko_r$tourspot$mng$refbase)
+    ##names(kankochi) <- "base"
+    
+    ##geo_list <- kankochi %>% left_join(geo_end, by = "base")
+    
+    #kanko_rr <- data.frame(kanko_r$tourspots$name$name1$written,
+    #                       paste0(kanko_r$tourspots$place$city$written[[1]], kanko_r$tourspots$place$street$written[[1]]),
+    #    kanko_r$tourspots$place$phone)
+    geo_list <- geo_end %>% filter(V5 == isolate(input$kanko_S), pref == isolate(input$city)) 
+    
+    
+    geo_list_r <- geo_list %>% select(name1, jusho, phone)
+    geo_list_r %<>% as.data.frame() %>% distinct(name1,.keep_all=TRUE)
+    
+    colnames(geo_list_r) <- c("Spot", "Adress", "Phone")
+    #colnames(kanko_rr) <- c("Spot", "Adress", "Facility")
+    datatable(geo_list_r,#,
+              rownames = F, extensions = c('Buttons'), #selection = "single", #filter='top', escape = FALSE,
+              style = 'bootstrap', class = 'table-bordered table-condensed', 
+              options=list(dom = 'Bfrtip', 
+                           buttons = c('csv', 'print'), 
+                           #scrollX = TRUE,
+                           #scrollCollapse = TRUE,
+                           pageLength = 50,
+                           #fixedHeader = TRUE,
+                           autoWidth=T))
+    
+  })
+  
+  
+  
+  observe({
+    
+    
+    data_M <- switch(str_extract(input$kanko_L, "^."),
+                     "A" = janru_miru$miru,
+                     "B" = janru_ivent$ivent,
+                     "C" = janru_asobu$asobu,
+                     "D" = janru_kau$kau,
+                     "E" = janru_taberu$taberu,
+                     "F" = janru_norimono$norimono,
+                     "G" = janru_tomaru$tomaru,
+                     "H" = janru_sonota$sonota)
+    
+    updateSelectInput(session, "kanko_M", choices = data_M)
+  })
+  
+  
+  observe({
+  
+    
+    
+    data_S <- switch(str_extract(input$kanko_M, "^."),
+                     "A" = janru_miru_shizen,
+                     "B" = janru_miru_shisetsu,
+                     "C" = janru_miru_koen,
+                     "D" = janru_miru_doshokubutsu,
+                     "E" = janru_miru_bunkashiseki,
+                     "F" = janru_miru_bunkashisetsu,
+                     "G" = janru_miru_jinjabukkaku[[1]],
+                     "H" = janru_miru_chiikihuzokuhushu[[1]],
+                     "I" = janru_miru_sonota,
+                     "J" = janru_ivent_saiji[[1]],
+                     "K" = janru_ivent_ivent,
+                     "L" = janru_ivent_iventkansho[[1]],
+                     "M" = janru_ivent_sonota[[1]],
+                     "N" = janru_asobu_bunkashisetsu,
+                     "O" = janru_asobu_sports,
+                     "P" = janru_asobu_onsen[[1]],
+                     "Q" = janru_asobu_sonota[[1]],
+                     "R" = janru_kau_meisan,
+                     "S" = janru_kau_sonota[[1]],
+                     "T" = janru_taberu_kyodo[[1]],
+                     "U" = janru_taberu_sonota[[1]],
+                     "V" = janru_norimono_kuruma[[1]],
+                     "W" = janru_norimono_sonota,
+                     "X" = janru_tomaru_ryokan[[1]],
+                     "Y" = janru_tomaru_hotel,
+                     "Z" = janru_tomaru_minshuku,
+                     "a" = janru_tomaru_sonota[[1]],
+                     "b" = janru_sonota_sonota[[1]])
+    
+   
+    updateSelectInput(session, "kanko_S", choices = data_S)
+    
+  })
+  
+  #selected pulldown
+  observe({
+   
+    if(is.null(input$map_marker_click$id)){ return() }
+    
+    
+    if(input$map_marker_click$id %in% airprt_info$`odpt:originAirport`) {
+      rown <- which(airprt_info$`odpt:originAirport` == input$map_marker_click$id)
+      apt <- airprt_info$Name[rown]
+    }else{
+      
+      lng_air <- str_split( isolate(input$map_marker_click$id), pattern = ",")[[1]][1] %>% as.numeric()
+      lat_air <- str_split( isolate(input$map_marker_click$id), pattern = ",")[[1]][2] %>% as.numeric()
+      
+      airprt_info$lng_air <- lng_air 
+      airprt_info$lat_air <- lat_air 
+      
+      airprt_info$dist <- ((airprt_info$lat - as.numeric(airprt_info$lat_air))^2 + (airprt_info$lon - as.numeric(airprt_info$lng_air))^2)^0.5
+      min_dist <- which(airprt_info$dist == min(airprt_info$dist))
+      apt <- airprt_info$Name[min_dist]
+    }
+    
+    updateSelectInput(session, "selected", choices = apt, selected = apt)
+    
+  })
+  
+  
+  
+  #return click marker info
+  observe({
+    
+    if(is.null(input$map_marker_click$id)){ return() }
+    
+    
+     if(input$map_marker_click$id %in% airprt_info$`odpt:originAirport`) {
+      rown <- which(airprt_info$`odpt:originAirport` == input$map_marker_click$id)
+      apt <- airprt_info$City[rown]
+      
+      
+      geo_airport <- ifelse(is.null(input$map_marker_click),
+                            paste0("https://www.geocoding.jp/api/?v=1.1&q=", "haneda"),
+                            paste0("https://www.geocoding.jp/api/?v=1.1&q=", as.character(apt)))
+      
+      page_air <- read_html(geo_airport)
+      page_air %>% html_nodes("lat") %>% html_text() -> lat_air
+      page_air %>% html_nodes("lng") %>% html_text() -> lng_air
+     }else{lng_air <- str_split(input$map_marker_click$id, pattern = ",")[[1]][1] %>% as.numeric()
+       lat_air <- str_split(input$map_marker_click$id, pattern = ",")[[1]][2] %>% as.numeric()
+     }
+    
+    
+    
+    ken <- paste0("http://geoapi.heartrails.com/api/xml?method=searchByGeoLocation&x=",
+                  lng_air, "&y=", lat_air)
+    
+    ken %>% read_html() %>% html_nodes("prefecture") %>% html_text() -> data_city
+    
+    
+    updateSelectInput(session, "city", choices = as.list(city), selected = data_city)
+    
+  })
+  
+  #output timetable##############################
+  output$table_time <- renderDataTable({
+    
+    input$trigger3
+    
+    if(is.null( isolate(input$map_marker_click$id))){ return() }
+    
+    if(isolate(input$intdom) == "Arrival"){
+    if(isolate(input$map_marker_click$id) %in% airprt_info$`odpt:originAirport`){
+    sche_api <- paste0("https://api-tokyochallenge.odpt.org/api/v4/odpt:FlightSchedule?", 
+                       #"odpt:operator=odpt.Operator:", isolate(input$airline),
+                       "&", "odpt:calendar=odpt.Calendar:", isolate(weekdays(as.Date(input$date))),
+                       "&", "odpt:destinationAirport=odpt.Airport:",  isolate(input$map_marker_click$id),
+                       #"&", "odpt:originAirport=odpt.Airport:", "HND",
+                       "&", "acl:consumerKey=6673eb28792db01c56edf7cac8b72a6a6c89aa344456fb7aa40af991edaae756")
+    }else{
+      lng_air <- str_split( isolate(input$map_marker_click$id), pattern = ",")[[1]][1] %>% as.numeric()
+      lat_air <- str_split( isolate(input$map_marker_click$id), pattern = ",")[[1]][2] %>% as.numeric()
+      
+      airprt_info$lng_air <- lng_air 
+      airprt_info$lat_air <- lat_air 
+      
+      airprt_info$dist <- ((airprt_info$lat - as.numeric(airprt_info$lat_air))^2 + (airprt_info$lon - as.numeric(airprt_info$lng_air))^2)^0.5
+      min_dist <- which(airprt_info$dist == min(airprt_info$dist))
+      airport <- airprt_info$`odpt:originAirport`[min_dist]
+      
+      sche_api <- paste0("https://api-tokyochallenge.odpt.org/api/v4/odpt:FlightSchedule?", 
+                         #"odpt:operator=odpt.Operator:", isolate(input$airline),
+                         "&", "odpt:calendar=odpt.Calendar:", isolate(weekdays(as.Date(input$date))),
+                         "&", "odpt:destinationAirport=odpt.Airport:", airport,
+                         #"&", "odpt:originAirport=odpt.Airport:", "HND",
+                         "&", "acl:consumerKey=6673eb28792db01c56edf7cac8b72a6a6c89aa344456fb7aa40af991edaae756")
+      
+        }
+    
+    sche_info <- fromJSON(sche_api, simplifyVector = TRUE)
+    
+      
+    
+    df <- c()
+    obj <- sche_info$`odpt:flightScheduleObject`
+    for (i in 1:nrow(sche_info)){
+      
+      df_fn <- as.data.frame(obj[i]) 
+      
+      if (any(colnames(df_fn) %in% "odpt.note")){
+        df_fn <- df_fn %>% select(-odpt.note) %>% unnest(odpt.flightNumber)
+      }else{df_fn <- df_fn %>% unnest(odpt.flightNumber)}
+      
+      
+      df_fn %<>% select(odpt.airline, 
+                        odpt.isValidFrom,
+                        odpt.isValidTo,
+                        odpt.flightNumber,
+                        #odpt.aircraftType,
+                        odpt.originTime,
+                        odpt.destinationTime
+      ) 
+      df_time <- cbind(sche_info[i, 1], df_fn)
+      
+      df <- rbind(df, df_time)
+      df
+    }
+    
+    names(df) <- c("@id",
+                   "odpt.airline",
+                   "odpt.isValidFrom",
+                   "odpt.isValidTo",
+                   "odpt.flightNumber",
+                   #"odpt.aircraftType",
+                   "odpt.origin.Time",
+                   "odpt.destinationTime"
+    )
+    
+    
+    #table
+    df_bind <- df %>% left_join(sche_info, by = "@id") 
+    #select
+    df_bind_sel <- df_bind %>% select(odpt.airline,
+                                      odpt.isValidFrom,
+                                      odpt.isValidTo,
+                                      #`odpt:calendar`,
+                                      odpt.flightNumber,
+                                      # odpt.aircraftType,
+                                      `odpt:originAirport`,
+                                      `odpt:destinationAirport`,
+                                      odpt.origin.Time,
+                                      odpt.destinationTime
+    )
+    
+    df_bind_sel$odpt.airline %<>% str_remove_all("odpt.Operator:")  
+    df_bind_sel$odpt.isValidFrom %<>% as.Date()
+    df_bind_sel$odpt.isValidTo %<>% as.Date()
+    #df_bind_sel$`odpt:calendar` %<>% str_remove_all("odpt.Calendar:")
+    df_bind_sel$`odpt:originAirport` %<>% str_remove_all("odpt.Airport:")
+    df_bind_sel$`odpt:destinationAirport` %<>% str_remove_all("odpt.Airport:")
+    
+    df_bind_sel <- df_bind_sel %>% left_join(airprt_info, by = "odpt:originAirport")
+    df_bind_sel <- df_bind_sel %>% left_join(airprt_info, by = c("odpt:destinationAirport"= "odpt:originAirport"))
+    
+    df_bind_sel_r <- df_bind_sel %>% select(odpt.airline,
+                                            odpt.isValidFrom,
+                                            odpt.isValidTo,
+                                            #from_to,
+                                            #`odpt:calendar`,
+                                            odpt.flightNumber,
+                                            #odpt.aircraftType,
+                                            `odpt:originAirport`,
+                                            `odpt:destinationAirport`,
+                                            airport.x,
+                                            airport.y,
+                                            odpt.origin.Time,
+                                            odpt.destinationTime)
+    
+    colnames(df_bind_sel_r) <- c("operator", 
+                                 "from",
+                                 "to",
+                                 #"week",
+                                 "flight_No",
+                                 #"type",
+                                 "dep",
+                                 "arr",
+                                 "dep_ja",
+                                 "arr_ja",
+                                 "dep_time",
+                                 "arr_time")
+    
+    
+    
+    
+    
+    df_bind_sel_r$operator %<>% as.factor()
+    df_bind_sel_r$from %<>% as.Date()
+    df_bind_sel_r$to %<>% as.Date()
+    #df_bind_sel_r$week %<>% as.factor()
+    df_bind_sel_r$dep %<>% as.factor()
+    df_bind_sel_r$arr %<>% as.factor()
+    df_bind_sel_r$dep_ja %<>% as.factor()
+    
+    
+    df_bind_sel_r %<>% filter(from <= input$date, 
+                              to >= isolate(input$date),
+                              #dep == "HND",
+                              arr == ifelse(nchar( isolate(input$map_marker_click$id)) == 3,
+                                            isolate(input$map_marker_click$id),
+                                            airport)) %>% 
+      select(-from, -to) %>% 
+      distinct(flight_No, .keep_all=TRUE) %>% 
+      na.omit()
+    
+    
+    df_bind_sel_r$arr_ja %<>% as.factor()
+    }else{
+    
+    if(isolate(input$map_marker_click$id) %in% airprt_info$`odpt:originAirport`){
+      sche_api <- paste0("https://api-tokyochallenge.odpt.org/api/v4/odpt:FlightSchedule?", 
+                         #"odpt:operator=odpt.Operator:", isolate(input$airline),
+                         "&", "odpt:calendar=odpt.Calendar:", isolate(weekdays(as.Date(input$date))),
+                         #"&", "odpt:destinationAirport=odpt.Airport:",  isolate(input$map_marker_click$id),
+                         "&", "odpt:originAirport=odpt.Airport:",  isolate(input$map_marker_click$id),
+                         "&", "acl:consumerKey=6673eb28792db01c56edf7cac8b72a6a6c89aa344456fb7aa40af991edaae756")
+    }else{
+      lng_air <- str_split( isolate(input$map_marker_click$id), pattern = ",")[[1]][1] %>% as.numeric()
+      lat_air <- str_split( isolate(input$map_marker_click$id), pattern = ",")[[1]][2] %>% as.numeric()
+      
+      airprt_info$lng_air <- lng_air 
+      airprt_info$lat_air <- lat_air 
+      
+      airprt_info$dist <- ((airprt_info$lat - as.numeric(airprt_info$lat_air))^2 + (airprt_info$lon - as.numeric(airprt_info$lng_air))^2)^0.5
+      min_dist <- which(airprt_info$dist == min(airprt_info$dist))
+      airport <- airprt_info$`odpt:originAirport`[min_dist]
+      
+      sche_api <- paste0("https://api-tokyochallenge.odpt.org/api/v4/odpt:FlightSchedule?", 
+                         #"odpt:operator=odpt.Operator:", isolate(input$airline),
+                         "&", "odpt:calendar=odpt.Calendar:", isolate(weekdays(as.Date(input$date))),
+                         #"&", "odpt:destinationAirport=odpt.Airport:", airport,
+                         "&", "odpt:originAirport=odpt.Airport:", airport,
+                         "&", "acl:consumerKey=6673eb28792db01c56edf7cac8b72a6a6c89aa344456fb7aa40af991edaae756")
+      
+    }
+    
+    sche_info <- fromJSON(sche_api, simplifyVector = TRUE)
+    
+    
+    
+    df <- c()
+    obj <- sche_info$`odpt:flightScheduleObject`
+    for (i in 1:nrow(sche_info)){
+      
+      df_fn <- as.data.frame(obj[i]) 
+      
+      if (any(colnames(df_fn) %in% "odpt.note")){
+        df_fn <- df_fn %>% select(-odpt.note) %>% unnest(odpt.flightNumber)
+      }else{df_fn <- df_fn %>% unnest(odpt.flightNumber)}
+      
+      
+      df_fn %<>% select(odpt.airline, 
+                        odpt.isValidFrom,
+                        odpt.isValidTo,
+                        odpt.flightNumber,
+                        #odpt.aircraftType,
+                        odpt.originTime,
+                        odpt.destinationTime
+      ) 
+      df_time <- cbind(sche_info[i, 1], df_fn)
+      
+      df <- rbind(df, df_time)
+      df
+    }
+    
+    names(df) <- c("@id",
+                   "odpt.airline",
+                   "odpt.isValidFrom",
+                   "odpt.isValidTo",
+                   "odpt.flightNumber",
+                   #"odpt.aircraftType",
+                   "odpt.origin.Time",
+                   "odpt.destinationTime"
+    )
+    
+    
+    #table
+    df_bind <- df %>% left_join(sche_info, by = "@id") 
+    #select
+    df_bind_sel <- df_bind %>% select(odpt.airline,
+                                      odpt.isValidFrom,
+                                      odpt.isValidTo,
+                                      #`odpt:calendar`,
+                                      odpt.flightNumber,
+                                      # odpt.aircraftType,
+                                      `odpt:originAirport`,
+                                      `odpt:destinationAirport`,
+                                      odpt.origin.Time,
+                                      odpt.destinationTime
+    )
+    
+    df_bind_sel$odpt.airline %<>% str_remove_all("odpt.Operator:")  
+    df_bind_sel$odpt.isValidFrom %<>% as.Date()
+    df_bind_sel$odpt.isValidTo %<>% as.Date()
+    #df_bind_sel$`odpt:calendar` %<>% str_remove_all("odpt.Calendar:")
+    df_bind_sel$`odpt:originAirport` %<>% str_remove_all("odpt.Airport:")
+    df_bind_sel$`odpt:destinationAirport` %<>% str_remove_all("odpt.Airport:")
+    
+    df_bind_sel <- df_bind_sel %>% left_join(airprt_info, by = "odpt:originAirport")
+    df_bind_sel <- df_bind_sel %>% left_join(airprt_info, by = c("odpt:destinationAirport"= "odpt:originAirport"))
+    
+    df_bind_sel_r <- df_bind_sel %>% select(odpt.airline,
+                                            odpt.isValidFrom,
+                                            odpt.isValidTo,
+                                            #from_to,
+                                            #`odpt:calendar`,
+                                            odpt.flightNumber,
+                                            #odpt.aircraftType,
+                                            `odpt:originAirport`,
+                                            `odpt:destinationAirport`,
+                                            airport.x,
+                                            airport.y,
+                                            odpt.origin.Time,
+                                            odpt.destinationTime)
+    
+    colnames(df_bind_sel_r) <- c("operator", 
+                                 "from",
+                                 "to",
+                                 #"week",
+                                 "flight_No",
+                                 #"type",
+                                 "dep",
+                                 "arr",
+                                 "dep_ja",
+                                 "arr_ja",
+                                 "dep_time",
+                                 "arr_time")
+    
+    
+    
+    
+    
+    df_bind_sel_r$operator %<>% as.factor()
+    df_bind_sel_r$from %<>% as.Date()
+    df_bind_sel_r$to %<>% as.Date()
+    #df_bind_sel_r$week %<>% as.factor()
+    df_bind_sel_r$dep %<>% as.factor()
+    df_bind_sel_r$arr %<>% as.factor()
+    df_bind_sel_r$dep_ja %<>% as.factor()
+    
+    
+    df_bind_sel_r %<>% filter(from <= input$date, 
+                              to >= isolate(input$date),
+                              #dep == "HND",
+                              dep == ifelse(nchar( isolate(input$map_marker_click$id)) == 3,
+                                            isolate(input$map_marker_click$id),
+                                            airport)) %>% 
+      select(-from, -to) %>% 
+      distinct(flight_No, .keep_all=TRUE) %>% 
+      na.omit()
+    
+    
+    df_bind_sel_r$arr_ja %<>% as.factor()
+    }
+    
+    df_bind_sel_r <- df_bind_sel_r %>% left_join(airline, by = c("operator" = "airline")) %>% 
+    filter(Callsign != "J-BIRD") 
+    df_bind_sel_r <- df_bind_sel_r[, c(9, 1:8)]
+    
+    
+    
+    datatable(df_bind_sel_r, filter='top', rownames = T, extensions = c('Buttons'), selection = "single",
+              escape = FALSE, style = 'bootstrap', class = 'table-bordered table-condensed',
+              options=list(dom = 'Bfrtip', 
+                           buttons = c('pdf','csv', 'print'), 
+                           scrollX = TRUE,
+                           scrollCollapse = TRUE,
+                           pageLength = 5,
+                           fixedHeader = TRUE,
+                           autoWidth=T))
+  
+    
+  })
+  
+  
+  
+  observeEvent(input$table_time_rows_selected, {
+   
+    input$trigger3
+    
+     output$flight_now <- renderDataTable({
+       
+      
+      if(is.null(isolate(input$table_time_rows_selected))){ return() }
+       
+       if(input$intdom == "Arrival"){
+       
+       if(isolate(input$map_marker_click$id) %in% airprt_info$`odpt:originAirport`){
+         sche_api <- paste0("https://api-tokyochallenge.odpt.org/api/v4/odpt:FlightSchedule?", 
+                            #"odpt:operator=odpt.Operator:", isolate(input$airline),
+                            "&", "odpt:calendar=odpt.Calendar:", isolate(weekdays(as.Date(input$date))),
+                            "&", "odpt:destinationAirport=odpt.Airport:", input$map_marker_click$id,
+                            #"&", "odpt:originAirport=odpt.Airport:", "HND",
+                            "&", "acl:consumerKey=6673eb28792db01c56edf7cac8b72a6a6c89aa344456fb7aa40af991edaae756")
+       }else{
+         lng_air <- str_split(isolate(input$map_marker_click$id), pattern = ",")[[1]][1] %>% as.numeric()
+         lat_air <- str_split(isolate(input$map_marker_click$id), pattern = ",")[[1]][2] %>% as.numeric()
+         
+         airprt_info$lng_air <- lng_air 
+         airprt_info$lat_air <- lat_air 
+         
+         airprt_info$dist <- ((airprt_info$lat - as.numeric(airprt_info$lat_air))^2 + (airprt_info$lon - as.numeric(airprt_info$lng_air))^2)^0.5
+         min_dist <- which(airprt_info$dist == min(airprt_info$dist))
+         airport <- airprt_info$`odpt:originAirport`[min_dist]
+         
+         sche_api <- paste0("https://api-tokyochallenge.odpt.org/api/v4/odpt:FlightSchedule?", 
+                            #"odpt:operator=odpt.Operator:", isolate(input$airline),
+                            "&", "odpt:calendar=odpt.Calendar:", isolate(weekdays(as.Date(input$date))),
+                            "&", "odpt:destinationAirport=odpt.Airport:", airport,
+                            #"&", "odpt:originAirport=odpt.Airport:", "HND",
+                            "&", "acl:consumerKey=6673eb28792db01c56edf7cac8b72a6a6c89aa344456fb7aa40af991edaae756")
+         
+       }
+      
+      sche_info <- fromJSON(sche_api, simplifyVector = TRUE)
+      
+      
+      
+      
+      df <- c()
+      obj <- sche_info$`odpt:flightScheduleObject`
+      for (i in 1:nrow(sche_info)){
+        
+        df_fn <- as.data.frame(obj[i]) 
+        
+        if (any(colnames(df_fn) %in% "odpt.note")){
+          df_fn <- df_fn %>% select(-odpt.note) %>% unnest(odpt.flightNumber)
+        }else{df_fn <- df_fn %>% unnest(odpt.flightNumber)}
+        
+        
+        df_fn %<>% select(odpt.airline, 
+                          odpt.isValidFrom,
+                          odpt.isValidTo,
+                          odpt.flightNumber,
+                          #odpt.aircraftType,
+                          odpt.originTime,
+                          odpt.destinationTime
+        ) 
+        df_time <- cbind(sche_info[i, 1], df_fn)
+        
+        df <- rbind(df, df_time)
+        df
+      }
+      
+      names(df) <- c("@id",
+                     "odpt.airline",
+                     "odpt.isValidFrom",
+                     "odpt.isValidTo",
+                     "odpt.flightNumber",
+                     #"odpt.aircraftType",
+                     "odpt.origin.Time",
+                     "odpt.destinationTime"
+      )
+      
+      
+      #table
+      df_bind <- df %>% left_join(sche_info, by = "@id") 
+      #select
+      df_bind_sel <- df_bind %>% select(odpt.airline,
+                                        odpt.isValidFrom,
+                                        odpt.isValidTo,
+                                        #`odpt:calendar`,
+                                        odpt.flightNumber,
+                                        # odpt.aircraftType,
+                                        `odpt:originAirport`,
+                                        `odpt:destinationAirport`,
+                                        odpt.origin.Time,
+                                        odpt.destinationTime
+      )
+      
+      df_bind_sel$odpt.airline %<>% str_remove_all("odpt.Operator:")  
+      df_bind_sel$odpt.isValidFrom %<>% as.Date()
+      df_bind_sel$odpt.isValidTo %<>% as.Date()
+      #df_bind_sel$`odpt:calendar` %<>% str_remove_all("odpt.Calendar:")
+      df_bind_sel$`odpt:originAirport` %<>% str_remove_all("odpt.Airport:")
+      df_bind_sel$`odpt:destinationAirport` %<>% str_remove_all("odpt.Airport:")
+      
+      df_bind_sel <- df_bind_sel %>% left_join(airprt_info, by = "odpt:originAirport")
+      df_bind_sel <- df_bind_sel %>% left_join(airprt_info, by = c("odpt:destinationAirport"= "odpt:originAirport"))
+      
+      df_bind_sel_r <- df_bind_sel %>% select(odpt.airline,
+                                              odpt.isValidFrom,
+                                              odpt.isValidTo,
+                                              #from_to,
+                                              #`odpt:calendar`,
+                                              odpt.flightNumber,
+                                              #odpt.aircraftType,
+                                              `odpt:originAirport`,
+                                              `odpt:destinationAirport`,
+                                              airport.x,
+                                              airport.y,
+                                              odpt.origin.Time,
+                                              odpt.destinationTime)
+      
+      colnames(df_bind_sel_r) <- c("airline", 
+                                   "from",
+                                   "to",
+                                   #"week",
+                                   "flight_No",
+                                   #"type",
+                                   "dep",
+                                   "arr",
+                                   "dep_ja",
+                                   "arr_ja",
+                                   "dep_time",
+                                   "arr_time")
+      
+      df_bind_sel_r$airline %<>% as.factor()
+      df_bind_sel_r$from %<>% as.Date()
+      df_bind_sel_r$to %<>% as.Date()
+      #df_bind_sel_r$week %<>% as.factor()
+      df_bind_sel_r$dep %<>% as.factor()
+      df_bind_sel_r$arr %<>% as.factor()
+      df_bind_sel_r$dep_ja %<>% as.factor()
+      df_bind_sel_r$arr_ja %<>% as.factor()
+      
+      
+      df_bind_sel_r %<>% filter(from <= isolate(input$date), 
+                                to >= isolate(input$date),
+                                #dep == "HND",
+                                arr == ifelse(nchar(isolate(input$map_marker_click$id)) == 3,
+                                              isolate(input$map_marker_click$id),
+                                              airport)) %>% 
+        select(-from, -to) %>% 
+        distinct(flight_No, .keep_all=TRUE) %>% 
+        na.omit()
+       }else{
+         if(isolate(input$map_marker_click$id) %in% airprt_info$`odpt:originAirport`){
+           sche_api <- paste0("https://api-tokyochallenge.odpt.org/api/v4/odpt:FlightSchedule?", 
+                              #"odpt:operator=odpt.Operator:", isolate(input$airline),
+                              "&", "odpt:calendar=odpt.Calendar:", isolate(weekdays(as.Date(input$date))),
+                              #"&", "odpt:destinationAirport=odpt.Airport:", input$map_marker_click$id,
+                              "&", "odpt:originAirport=odpt.Airport:", input$map_marker_click$id,
+                              "&", "acl:consumerKey=6673eb28792db01c56edf7cac8b72a6a6c89aa344456fb7aa40af991edaae756")
+         }else{
+           lng_air <- str_split(isolate(input$map_marker_click$id), pattern = ",")[[1]][1] %>% as.numeric()
+           lat_air <- str_split(isolate(input$map_marker_click$id), pattern = ",")[[1]][2] %>% as.numeric()
+           
+           airprt_info$lng_air <- lng_air 
+           airprt_info$lat_air <- lat_air 
+           
+           airprt_info$dist <- ((airprt_info$lat - as.numeric(airprt_info$lat_air))^2 + (airprt_info$lon - as.numeric(airprt_info$lng_air))^2)^0.5
+           min_dist <- which(airprt_info$dist == min(airprt_info$dist))
+           airport <- airprt_info$`odpt:originAirport`[min_dist]
+           
+           sche_api <- paste0("https://api-tokyochallenge.odpt.org/api/v4/odpt:FlightSchedule?", 
+                              #"odpt:operator=odpt.Operator:", isolate(input$airline),
+                              "&", "odpt:calendar=odpt.Calendar:", isolate(weekdays(as.Date(input$date))),
+                              #"&", "odpt:destinationAirport=odpt.Airport:", airport,
+                              "&", "odpt:originAirport=odpt.Airport:", airport,
+                              "&", "acl:consumerKey=6673eb28792db01c56edf7cac8b72a6a6c89aa344456fb7aa40af991edaae756")
+           
+         }
+         
+         sche_info <- fromJSON(sche_api, simplifyVector = TRUE)
+         
+         
+         
+         
+         df <- c()
+         obj <- sche_info$`odpt:flightScheduleObject`
+         for (i in 1:nrow(sche_info)){
+           
+           df_fn <- as.data.frame(obj[i]) 
+           
+           if (any(colnames(df_fn) %in% "odpt.note")){
+             df_fn <- df_fn %>% select(-odpt.note) %>% unnest(odpt.flightNumber)
+           }else{df_fn <- df_fn %>% unnest(odpt.flightNumber)}
+           
+           
+           df_fn %<>% select(odpt.airline, 
+                             odpt.isValidFrom,
+                             odpt.isValidTo,
+                             odpt.flightNumber,
+                             #odpt.aircraftType,
+                             odpt.originTime,
+                             odpt.destinationTime
+           ) 
+           df_time <- cbind(sche_info[i, 1], df_fn)
+           
+           df <- rbind(df, df_time)
+           df
+         }
+         
+         names(df) <- c("@id",
+                        "odpt.airline",
+                        "odpt.isValidFrom",
+                        "odpt.isValidTo",
+                        "odpt.flightNumber",
+                        #"odpt.aircraftType",
+                        "odpt.origin.Time",
+                        "odpt.destinationTime"
+         )
+         
+         
+         #table
+         df_bind <- df %>% left_join(sche_info, by = "@id") 
+         #select
+         df_bind_sel <- df_bind %>% select(odpt.airline,
+                                           odpt.isValidFrom,
+                                           odpt.isValidTo,
+                                           #`odpt:calendar`,
+                                           odpt.flightNumber,
+                                           # odpt.aircraftType,
+                                           `odpt:originAirport`,
+                                           `odpt:destinationAirport`,
+                                           odpt.origin.Time,
+                                           odpt.destinationTime
+         )
+         
+         df_bind_sel$odpt.airline %<>% str_remove_all("odpt.Operator:")  
+         df_bind_sel$odpt.isValidFrom %<>% as.Date()
+         df_bind_sel$odpt.isValidTo %<>% as.Date()
+         #df_bind_sel$`odpt:calendar` %<>% str_remove_all("odpt.Calendar:")
+         df_bind_sel$`odpt:originAirport` %<>% str_remove_all("odpt.Airport:")
+         df_bind_sel$`odpt:destinationAirport` %<>% str_remove_all("odpt.Airport:")
+         
+         df_bind_sel <- df_bind_sel %>% left_join(airprt_info, by = "odpt:originAirport")
+         df_bind_sel <- df_bind_sel %>% left_join(airprt_info, by = c("odpt:destinationAirport"= "odpt:originAirport"))
+         
+         df_bind_sel_r <- df_bind_sel %>% select(odpt.airline,
+                                                 odpt.isValidFrom,
+                                                 odpt.isValidTo,
+                                                 #from_to,
+                                                 #`odpt:calendar`,
+                                                 odpt.flightNumber,
+                                                 #odpt.aircraftType,
+                                                 `odpt:originAirport`,
+                                                 `odpt:destinationAirport`,
+                                                 airport.x,
+                                                 airport.y,
+                                                 odpt.origin.Time,
+                                                 odpt.destinationTime)
+         
+         colnames(df_bind_sel_r) <- c("airline", 
+                                      "from",
+                                      "to",
+                                      #"week",
+                                      "flight_No",
+                                      #"type",
+                                      "dep",
+                                      "arr",
+                                      "dep_ja",
+                                      "arr_ja",
+                                      "dep_time",
+                                      "arr_time")
+         
+         df_bind_sel_r$airline %<>% as.factor()
+         df_bind_sel_r$from %<>% as.Date()
+         df_bind_sel_r$to %<>% as.Date()
+         #df_bind_sel_r$week %<>% as.factor()
+         df_bind_sel_r$dep %<>% as.factor()
+         df_bind_sel_r$arr %<>% as.factor()
+         df_bind_sel_r$dep_ja %<>% as.factor()
+         df_bind_sel_r$arr_ja %<>% as.factor()
+         
+         
+         df_bind_sel_r %<>% filter(from <= isolate(input$date), 
+                                   to >= isolate(input$date),
+                                   #dep == "HND",
+                                   dep == ifelse(nchar(isolate(input$map_marker_click$id)) == 3,
+                                                 isolate(input$map_marker_click$id),
+                                                 airport)) %>% 
+           select(-from, -to) %>% 
+           distinct(flight_No, .keep_all=TRUE) %>% 
+           na.omit()
+         
+         
+       }
+      
+      
+      flt_no <- as.character(df_bind_sel_r[isolate(input$table_time_rows_selected), "flight_No"])
+      
+      
+      #dep_url <- paste0("https://api-tokyochallenge.odpt.org/api/v4/odpt:FlightInformationDeparture?",
+      #                  "&", "odpt:flightNumber=", flt_no,
+      #                  "&", "acl:consumerKey=6673eb28792db01c56edf7cac8b72a6a6c89aa344456fb7aa40af991edaae756")
+      #dep_info <- fromJSON(dep_url, simplifyVector = TRUE)
+      
+      dep <- dep_info_sel[dep_info_sel$flight_No == flt_no,]
+      
+      datatable(dep, rownames = T, extensions = c('Buttons'), 
+                escape = FALSE, style = 'bootstrap', class = 'table-bordered table-condensed',
+                options=list(dom = 't', 
+                             scrollX = TRUE,
+                             scrollCollapse = TRUE,
+                             pageLength = 5,
+                             fixedHeader = TRUE,
+                             autoWidth=T))
+                
+      
+    })
+  })
+  
+
+  #about page
+  output$text <- renderUI({
+    HTML(about)
+   
+  })
+  
+  #manual page 
+  output$manual <- renderUI({
+    HTML(manual)
+    
+  })
+  
+  
+  
+  #sanky diagram
+  output$graph <- renderPlotly({
+    
+    input$trigger3
+    
+    if(is.null( isolate(input$map_marker_click$id))){ return() }
+    
+    if(isolate(input$intdom == "Arrival")){
+    
+    if(isolate(input$map_marker_click$id) %in% airprt_info$`odpt:originAirport`){
+      sche_api <- paste0("https://api-tokyochallenge.odpt.org/api/v4/odpt:FlightSchedule?", 
+                         #"odpt:operator=odpt.Operator:", isolate(input$airline),
+                         "&", "odpt:calendar=odpt.Calendar:", isolate(weekdays(as.Date(input$date))),
+                         "&", "odpt:destinationAirport=odpt.Airport:", isolate(input$map_marker_click$id),
+                         #"&", "odpt:originAirport=odpt.Airport:", "HND",
+                         "&", "acl:consumerKey=6673eb28792db01c56edf7cac8b72a6a6c89aa344456fb7aa40af991edaae756")
+    }else{
+      lng_air <- str_split(isolate(input$map_marker_click$id), pattern = ",")[[1]][1] %>% as.numeric()
+      lat_air <- str_split(isolate(input$map_marker_click$id), pattern = ",")[[1]][2] %>% as.numeric()
+      
+      airprt_info$lng_air <- lng_air 
+      airprt_info$lat_air <- lat_air 
+      
+      airprt_info$dist <- ((airprt_info$lat - as.numeric(airprt_info$lat_air))^2 + (airprt_info$lon - as.numeric(airprt_info$lng_air))^2)^0.5
+      min_dist <- which(airprt_info$dist == min(airprt_info$dist))
+      airport <- airprt_info$`odpt:originAirport`[min_dist]
+      
+      sche_api <- paste0("https://api-tokyochallenge.odpt.org/api/v4/odpt:FlightSchedule?", 
+                         #"odpt:operator=odpt.Operator:", isolate(input$airline),
+                         "&", "odpt:calendar=odpt.Calendar:", isolate(weekdays(as.Date(input$date))),
+                         "&", "odpt:destinationAirport=odpt.Airport:", airport,
+                         #"&", "odpt:originAirport=odpt.Airport:", "HND",
+                         "&", "acl:consumerKey=6673eb28792db01c56edf7cac8b72a6a6c89aa344456fb7aa40af991edaae756")
+      
+    }
+    
+    sche_info <- fromJSON(sche_api, simplifyVector = TRUE)
+    
+    df <- c()
+    obj <- sche_info$`odpt:flightScheduleObject`
+    for (i in 1:nrow(sche_info)){
+      
+      df_fn <- as.data.frame(obj[i]) 
+      
+      if (any(colnames(df_fn) %in% "odpt.note")){
+        df_fn <- df_fn %>% select(-odpt.note) %>% unnest(odpt.flightNumber)
+      }else{df_fn <- df_fn %>% unnest(odpt.flightNumber)}
+      
+      
+      df_fn %<>% select(odpt.airline, 
+                        odpt.isValidFrom,
+                        odpt.isValidTo,
+                        odpt.flightNumber,
+                        #odpt.aircraftType,
+                        odpt.originTime,
+                        odpt.destinationTime
+      ) 
+      df_time <- cbind(sche_info[i, 1], df_fn)
+      
+      df <- rbind(df, df_time)
+      df
+    }
+    
+    names(df) <- c("@id",
+                   "odpt.airline",
+                   "odpt.isValidFrom",
+                   "odpt.isValidTo",
+                   "odpt.flightNumber",
+                   #"odpt.aircraftType",
+                   "odpt.origin.Time",
+                   "odpt.destinationTime"
+    )
+    
+    
+    #table
+    df_bind <- df %>% left_join(sche_info, by = "@id") 
+    #select
+    df_bind_sel <- df_bind %>% select(odpt.airline,
+                                      odpt.isValidFrom,
+                                      odpt.isValidTo,
+                                      #`odpt:calendar`,
+                                      odpt.flightNumber,
+                                      # odpt.aircraftType,
+                                      `odpt:originAirport`,
+                                      `odpt:destinationAirport`,
+                                      odpt.origin.Time,
+                                      odpt.destinationTime
+    )
+    
+    df_bind_sel$odpt.airline %<>% str_remove_all("odpt.Operator:")  
+    df_bind_sel$odpt.isValidFrom %<>% as.Date()
+    df_bind_sel$odpt.isValidTo %<>% as.Date()
+    #df_bind_sel$`odpt:calendar` %<>% str_remove_all("odpt.Calendar:")
+    df_bind_sel$`odpt:originAirport` %<>% str_remove_all("odpt.Airport:")
+    df_bind_sel$`odpt:destinationAirport` %<>% str_remove_all("odpt.Airport:")
+    
+    df_bind_sel <- df_bind_sel %>% left_join(airprt_info, by = "odpt:originAirport")
+    df_bind_sel <- df_bind_sel %>% left_join(airprt_info, by = c("odpt:destinationAirport"= "odpt:originAirport"))
+    
+    df_bind_sel_r <- df_bind_sel %>% select(odpt.airline,
+                                            odpt.isValidFrom,
+                                            odpt.isValidTo,
+                                            #from_to,
+                                            #`odpt:calendar`,
+                                            odpt.flightNumber,
+                                            #odpt.aircraftType,
+                                            `odpt:originAirport`,
+                                            `odpt:destinationAirport`,
+                                            airport.x,
+                                            airport.y,
+                                            odpt.origin.Time,
+                                            odpt.destinationTime)
+    
+    colnames(df_bind_sel_r) <- c("operator", 
+                                 "from",
+                                 "to",
+                                 #"week",
+                                 "flight_No",
+                                 #"type",
+                                 "dep",
+                                 "arr",
+                                 "dep_ja",
+                                 "arr_ja",
+                                 "dep_time",
+                                 "arr_time")
+    
+    
+    
+    
+    
+    df_bind_sel_r$operator %<>% as.factor()
+    df_bind_sel_r$from %<>% as.Date()
+    df_bind_sel_r$to %<>% as.Date()
+    #df_bind_sel_r$week %<>% as.factor()
+    df_bind_sel_r$dep %<>% as.factor()
+    df_bind_sel_r$arr %<>% as.factor()
+    df_bind_sel_r$dep_ja %<>% as.factor()
+    
+    
+    df_bind_sel_r %<>% filter(from <= input$date, 
+                              to >= isolate(input$date),
+                              arr == ifelse(nchar(isolate(input$map_marker_click$id)) == 3,
+                                            isolate(input$map_marker_click$id),
+                                            airport)) %>% 
+      select(-from, -to) %>% 
+      distinct(flight_No, .keep_all=TRUE) %>% 
+      na.omit()
+    
+    df_bind_sel_r$arr_ja %<>% as.factor()
+    }else{
+      
+      if(isolate(input$map_marker_click$id) %in% airprt_info$`odpt:originAirport`){
+        sche_api <- paste0("https://api-tokyochallenge.odpt.org/api/v4/odpt:FlightSchedule?", 
+                           #"odpt:operator=odpt.Operator:", isolate(input$airline),
+                           "&", "odpt:calendar=odpt.Calendar:", isolate(weekdays(as.Date(input$date))),
+                           #"&", "odpt:destinationAirport=odpt.Airport:", isolate(input$map_marker_click$id),
+                           "&", "odpt:originAirport=odpt.Airport:", isolate(input$map_marker_click$id),
+                           "&", "acl:consumerKey=6673eb28792db01c56edf7cac8b72a6a6c89aa344456fb7aa40af991edaae756")
+      }else{
+        lng_air <- str_split(isolate(input$map_marker_click$id), pattern = ",")[[1]][1] %>% as.numeric()
+        lat_air <- str_split(isolate(input$map_marker_click$id), pattern = ",")[[1]][2] %>% as.numeric()
+        
+        airprt_info$lng_air <- lng_air 
+        airprt_info$lat_air <- lat_air 
+        
+        airprt_info$dist <- ((airprt_info$lat - as.numeric(airprt_info$lat_air))^2 + (airprt_info$lon - as.numeric(airprt_info$lng_air))^2)^0.5
+        min_dist <- which(airprt_info$dist == min(airprt_info$dist))
+        airport <- airprt_info$`odpt:originAirport`[min_dist]
+        
+        sche_api <- paste0("https://api-tokyochallenge.odpt.org/api/v4/odpt:FlightSchedule?", 
+                           #"odpt:operator=odpt.Operator:", isolate(input$airline),
+                           "&", "odpt:calendar=odpt.Calendar:", isolate(weekdays(as.Date(input$date))),
+                           #"&", "odpt:destinationAirport=odpt.Airport:", airport,
+                           "&", "odpt:originAirport=odpt.Airport:", airport,
+                           "&", "acl:consumerKey=6673eb28792db01c56edf7cac8b72a6a6c89aa344456fb7aa40af991edaae756")
+        
+      }
+      
+      sche_info <- fromJSON(sche_api, simplifyVector = TRUE)
+      
+      df <- c()
+      obj <- sche_info$`odpt:flightScheduleObject`
+      for (i in 1:nrow(sche_info)){
+        
+        df_fn <- as.data.frame(obj[i]) 
+        
+        if (any(colnames(df_fn) %in% "odpt.note")){
+          df_fn <- df_fn %>% select(-odpt.note) %>% unnest(odpt.flightNumber)
+        }else{df_fn <- df_fn %>% unnest(odpt.flightNumber)}
+        
+        
+        df_fn %<>% select(odpt.airline, 
+                          odpt.isValidFrom,
+                          odpt.isValidTo,
+                          odpt.flightNumber,
+                          #odpt.aircraftType,
+                          odpt.originTime,
+                          odpt.destinationTime
+        ) 
+        df_time <- cbind(sche_info[i, 1], df_fn)
+        
+        df <- rbind(df, df_time)
+        df
+      }
+      
+      names(df) <- c("@id",
+                     "odpt.airline",
+                     "odpt.isValidFrom",
+                     "odpt.isValidTo",
+                     "odpt.flightNumber",
+                     #"odpt.aircraftType",
+                     "odpt.origin.Time",
+                     "odpt.destinationTime"
+      )
+      
+      
+      #table
+      df_bind <- df %>% left_join(sche_info, by = "@id") 
+      #select
+      df_bind_sel <- df_bind %>% select(odpt.airline,
+                                        odpt.isValidFrom,
+                                        odpt.isValidTo,
+                                        #`odpt:calendar`,
+                                        odpt.flightNumber,
+                                        # odpt.aircraftType,
+                                        `odpt:originAirport`,
+                                        `odpt:destinationAirport`,
+                                        odpt.origin.Time,
+                                        odpt.destinationTime
+      )
+      
+      df_bind_sel$odpt.airline %<>% str_remove_all("odpt.Operator:")  
+      df_bind_sel$odpt.isValidFrom %<>% as.Date()
+      df_bind_sel$odpt.isValidTo %<>% as.Date()
+      #df_bind_sel$`odpt:calendar` %<>% str_remove_all("odpt.Calendar:")
+      df_bind_sel$`odpt:originAirport` %<>% str_remove_all("odpt.Airport:")
+      df_bind_sel$`odpt:destinationAirport` %<>% str_remove_all("odpt.Airport:")
+      
+      df_bind_sel <- df_bind_sel %>% left_join(airprt_info, by = "odpt:originAirport")
+      df_bind_sel <- df_bind_sel %>% left_join(airprt_info, by = c("odpt:destinationAirport"= "odpt:originAirport"))
+      
+      df_bind_sel_r <- df_bind_sel %>% select(odpt.airline,
+                                              odpt.isValidFrom,
+                                              odpt.isValidTo,
+                                              #from_to,
+                                              #`odpt:calendar`,
+                                              odpt.flightNumber,
+                                              #odpt.aircraftType,
+                                              `odpt:originAirport`,
+                                              `odpt:destinationAirport`,
+                                              airport.x,
+                                              airport.y,
+                                              odpt.origin.Time,
+                                              odpt.destinationTime)
+      
+      colnames(df_bind_sel_r) <- c("operator", 
+                                   "from",
+                                   "to",
+                                   #"week",
+                                   "flight_No",
+                                   #"type",
+                                   "dep",
+                                   "arr",
+                                   "dep_ja",
+                                   "arr_ja",
+                                   "dep_time",
+                                   "arr_time")
+      
+      
+      
+      
+      
+      df_bind_sel_r$operator %<>% as.factor()
+      df_bind_sel_r$from %<>% as.Date()
+      df_bind_sel_r$to %<>% as.Date()
+      #df_bind_sel_r$week %<>% as.factor()
+      df_bind_sel_r$dep %<>% as.factor()
+      df_bind_sel_r$arr %<>% as.factor()
+      df_bind_sel_r$dep_ja %<>% as.factor()
+      
+      
+      df_bind_sel_r %<>% filter(from <= input$date, 
+                                to >= isolate(input$date),
+                                dep == ifelse(nchar(isolate(input$map_marker_click$id)) == 3,
+                                              isolate(input$map_marker_click$id),
+                                              airport)) %>% 
+        select(-from, -to) %>% 
+        distinct(flight_No, .keep_all=TRUE) %>% 
+        na.omit()
+      
+      df_bind_sel_r$arr_ja %<>% as.factor()
+    }
+    
+    
+    
+    sche_graph <- df_bind_sel_r %>% select(operator, flight_No, dep, arr) %>% distinct(flight_No, .keep_all = T)
+    sche_graph <- sche_graph %>% group_by(operator, dep, arr) %>% summarise(ope_n = n()) %>% ungroup()
+    
+    sche_graph$operator %<>% as.character() 
+    sche_graph$dep %<>% as.character()
+    sche_graph$arr %<>% as.character()
+    
+    sche_graph <- sche_graph %>% left_join(dep, by = "dep")
+    sche_graph <- sche_graph %>% left_join(dep, by = c("arr.x"="arr"))
+    
+    sche_graph <- sche_graph %>% left_join(airline, by = c("operator" = "airline")) %>% 
+      filter(Callsign != "J-BIRD")
+    
+    
+    p <- plot_ly(
+      type = "sankey",
+      domain = list(
+        x =  c(0,1),
+        y =  c(0,1)
+      ),
+      orientation = "h",
+      valueformat = ".0f",
+      valuesuffix = "Flight",
+      
+      node = list(
+        label = dep$Name, 
+        
+        automargin = TRUE,
+        pad = 20,
+        thickness = 30,
+        line = list(
+          color = "black",
+          width = 0.5
+        )
+      ),
+      
+      link = list(
+        source = sche_graph$id.x,
+        target = as.numeric(sche_graph$id.y),
+        value =  as.numeric(sche_graph$ope_n),
+        label =  sche_graph$Name,
+        line = list(
+          color = "black",
+          width = 0.1)
+      )
+    ) %>% 
+      layout(
+        title = paste0(isolate(input$intdom), " airport : ", isolate(input$selected)) ,
+        font = list(
+          size = 9
+        ),
+        xaxis = list(showgrid = F, zeroline = F),
+        yaxis = list(showgrid = F, zeroline = F),
+        autosize = T
+      )
+    
+    p
+    
+    
+  })
+  
+  
+}) 

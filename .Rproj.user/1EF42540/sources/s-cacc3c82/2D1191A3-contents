@@ -1,0 +1,36 @@
+library(shiny)
+
+# Define server logic required to draw a histogram
+shinyServer(function(input, output) {
+    # output$position <- renderText({
+    #     input$trigger
+    #     
+    #     lat <- isolate(input$lat)
+    #     lon <- isolate(input$lon)
+    #     
+    #     posi <- paste0("lat : ", lat, "\n", "lon : ", lon)
+    # }),
+    
+    
+    output$table <- renderDataTable({
+        input$trigger
+        
+        lat <- isolate(input$lat)
+        lon <- isolate(input$lon)
+        
+        url1 <- "https://api.open-meteo.com/v1/forecast?latitude="
+        url2 <- "&longitude="
+        url3 <- "&hourly=temperature_2m,relativehumidity_2m,dewpoint_2m,pressure_msl,precipitation,shortwave_radiation,direct_radiation,diffuse_radiation,vapor_pressure_deficit,windspeed_10m&windspeed_unit=ms&timezone=Asia%2FTokyo"
+        
+        
+        url <- paste0(url1, round(lat, 2), url2, round(lon, 3), url3)
+        res <- fromJSON(url)
+        
+        temp_df <- data.table::rbindlist(res["hourly"], use.names = T)
+        temp_df$time <- ymd_hm(temp_df$time, tz = "Asia/Tokyo")
+        
+        DT::datatable(temp_df)
+        
+    })
+
+})

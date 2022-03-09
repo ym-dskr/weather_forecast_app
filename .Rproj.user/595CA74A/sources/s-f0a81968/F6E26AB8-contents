@@ -1,0 +1,288 @@
+library(DT)
+library(doParallel)
+library(jsonlite)
+library(data.table)
+library(tidyverse)
+library(dplyr)
+library(stringr)
+library(magrittr)
+library(leaflet)
+library(leaflet.extras)
+library(rvest)
+library(dashboardthemes)
+library(data.table)
+
+
+Sys.setlocale("LC_TIME","us") #"ja""us"
+cl <- makePSOCKcluster(4)
+registerDoParallel(cl)
+
+geo_end <- fread('geo_end.csv', showProgress = FALSE, encoding = 'UTF-8', data.table = FALSE)
+  #read.csv("geo_end.csv", header = T, fileEncoding="utf-8")
+
+#fitBounds(map, lng1, lat1, lng2, lat2)
+
+lng1 <- 128
+lat1 <- 31
+lng2 <- 147
+lat2 <- 45
+
+page_info_map <- readLines("page_info_map.txt")
+page_info_table <- readLines("page_info_table.txt")
+table_info <- readLines("table_info.txt")
+table_info2 <- readLines("table_info2.txt")
+about <- readLines("about.txt", encoding = "UTF-8")
+about_title <- readLines("about_title.txt")
+manual <- readLines("manual.txt")
+
+#########################
+#setwd("C:/Users/yakin/OneDrive/document/R/R_PJ/tokyo_opn_data/tokyo_opn_data")
+kanko_all <- read.csv("kanko_all.csv", header = T, fileEncoding = "UTF-8-BOM")
+#joken <- readLines("joken.txt")
+
+##janru_L
+city <- read.csv("city.csv", header = T, fileEncoding = "UTF-8-BOM")
+janru_L <- read.csv("janru_L.csv", header = T, fileEncoding = "UTF-8-BOM")
+
+janru_miru <- read.csv("janru_miru.csv", header = T, fileEncoding = "UTF-8-BOM")
+janru_ivent <- read.csv("janru_ivent.csv", header = T, fileEncoding = "UTF-8-BOM")
+janru_asobu <- read.csv("janru_asobu.csv", header = T, fileEncoding = "UTF-8-BOM")
+janru_kau <- read.csv("janru_kau.csv", header = T, fileEncoding = "UTF-8-BOM")
+janru_taberu <- read.csv("janru_taberu.csv", header = T, fileEncoding = "UTF-8-BOM")
+janru_norimono <- read.csv("janru_norimono.csv", header = T, fileEncoding = "UTF-8-BOM")
+janru_tomaru <- read.csv("janru_tomaru.csv", header = T, fileEncoding = "UTF-8-BOM")
+janru_sonota <- read.csv("janru_sonota.csv", header = T, fileEncoding = "UTF-8-BOM")
+
+janru_miru_shizen <- read.csv("janru_miru_shizen.csv", header = T, fileEncoding = "UTF-8-BOM")
+janru_miru_shisetsu <- read.csv("janru_miru_shisetsu.csv", header = T, fileEncoding = "UTF-8-BOM")
+janru_miru_koen <- read.csv("janru_miru_koen.csv", header = T, fileEncoding = "UTF-8-BOM")
+janru_miru_doshokubutsu <- read.csv("janru_miru_doshokubutsu.csv", header = T, fileEncoding = "UTF-8-BOM")
+janru_miru_bunkashiseki <- read.csv("janru_miru_bunkashiseki.csv", header = T, fileEncoding = "UTF-8-BOM")
+janru_miru_bunkashisetsu <- read.csv("janru_miru_bunkashisetsu.csv", header = T, fileEncoding = "UTF-8-BOM")
+janru_miru_jinjabukkaku <- read.csv("janru_miru_jinjabukkaku.csv", header = T, fileEncoding = "UTF-8-BOM")
+janru_miru_chiikihuzokuhushu <- read.csv("janru_miru_chiikihuzokuhushu.csv", header = T, fileEncoding = "UTF-8-BOM")
+janru_miru_sonota <- read.csv("janru_miru_sonota.csv", header = T, fileEncoding = "UTF-8-BOM")
+
+janru_ivent_saiji <- read.csv("janru_ivent_saiji.csv", header = T, fileEncoding = "UTF-8-BOM")
+janru_ivent_ivent <- read.csv("janru_ivent_ivent.csv", header = T, fileEncoding = "UTF-8-BOM")
+janru_ivent_iventkansho <- read.csv("janru_ivent_iventkansho.csv", header = T, fileEncoding = "UTF-8-BOM")
+janru_ivent_sonota <- read.csv("janru_ivent_sonota.csv", header = T, fileEncoding = "UTF-8-BOM")
+
+janru_asobu_bunkashisetsu <- read.csv("janru_asobu_bunkashisetsu.csv", header = T, fileEncoding = "UTF-8-BOM")
+janru_asobu_sports <- read.csv("janru_asobu_sports.csv", header = T, fileEncoding = "UTF-8-BOM")
+janru_asobu_onsen <- read.csv("janru_asobu_onsen.csv", header = T, fileEncoding = "UTF-8-BOM")
+janru_asobu_sonota <- read.csv("janru_asobu_sonota.csv", header = T, fileEncoding = "UTF-8-BOM")
+
+janru_kau_meisan <- read.csv("janru_kau_meisan.csv", header = T, fileEncoding = "UTF-8-BOM")
+janru_kau_sonota <- read.csv("janru_kau_sonota.csv", header = T, fileEncoding = "UTF-8-BOM")
+
+janru_taberu_kyodo <- read.csv("janru_taberu_kyodo.csv", header = T, fileEncoding = "UTF-8-BOM")
+janru_taberu_sonota <- read.csv("janru_taberu_sonota.csv", header = T, fileEncoding = "UTF-8-BOM")
+
+janru_norimono_kuruma <- read.csv("janru_norimono_kuruma.csv", header = T, fileEncoding = "UTF-8-BOM")
+janru_norimono_sonota <- read.csv("janru_norimono_sonota.csv", header = T, fileEncoding = "UTF-8-BOM")
+
+janru_tomaru_ryokan <- read.csv("janru_tomaru_ryokan.csv", header = T, fileEncoding = "UTF-8-BOM")
+janru_tomaru_hotel <- read.csv("janru_tomaru_hotel.csv", header = T, fileEncoding = "UTF-8-BOM")
+janru_tomaru_minshuku <- read.csv("janru_tomaru_minshuku.csv", header = T, fileEncoding = "UTF-8-BOM")
+janru_tomaru_sonota <- read.csv("janru_tomaru_sonota.csv", header = T, fileEncoding = "UTF-8-BOM")
+
+janru_sonota_sonota <- read.csv("janru_sonota_sonota.csv", header = T, fileEncoding = "UTF-8-BOM")
+
+
+
+
+##############################
+
+#airport
+airport_api <- "https://api-tokyochallenge.odpt.org/api/v4/odpt:Airport?acl:consumerKey=6673eb28792db01c56edf7cac8b72a6a6c89aa344456fb7aa40af991edaae756"
+airprt_info <- fromJSON(airport_api, simplifyVector = TRUE)
+airprt_info <- airprt_info %>% select(`dc:title`, `owl:sameAs`)
+airprt_info$`owl:sameAs` %<>% str_remove_all("odpt.Airport:") 
+colnames(airprt_info) <- c("airport", "odpt:originAirport")
+
+
+loc <- read.csv("GlobalAirportDatabase.csv", header = T)
+colnames(loc) <- c("Name", "City", "Country", "odpt:originAirport", "ICAO", "lat", "lon", "alt", "timezone", "zone")
+airprt_info %<>% left_join(loc, by = "odpt:originAirport") %>% na.omit()
+#airprt_info %<>% filter(Country == "Japan")
+#airprt_info <- na.omit(airprt_info)
+
+#terminal
+terminal_api <- "https://api-tokyochallenge.odpt.org/api/v4/odpt:AirportTerminal?acl:consumerKey=6673eb28792db01c56edf7cac8b72a6a6c89aa344456fb7aa40af991edaae756"
+terminal_info <- fromJSON(terminal_api, simplifyVector = TRUE)
+terminal_info %<>% select(`owl:sameAs`, `odpt:airportTerminalTitle`)
+terminal_info$`owl:sameAs` %<>% str_remove_all("odpt.AirportTerminal:")
+
+#ARR
+arr_api <- "https://api-tokyochallenge.odpt.org/api/v4/odpt:FlightInformationArrival?acl:consumerKey=6673eb28792db01c56edf7cac8b72a6a6c89aa344456fb7aa40af991edaae756"
+arr_info <- fromJSON(arr_api, simplifyVector = TRUE)
+
+#DEP
+dep_api <- "https://api-tokyochallenge.odpt.org/api/v4/odpt:FlightInformationDeparture?acl:consumerKey=6673eb28792db01c56edf7cac8b72a6a6c89aa344456fb7aa40af991edaae756"
+dep_info <- fromJSON(dep_api, simplifyVector = TRUE)
+
+#sts
+sts_api <- "https://api-tokyochallenge.odpt.org/api/v4/odpt:FlightStatus?acl:consumerKey=6673eb28792db01c56edf7cac8b72a6a6c89aa344456fb7aa40af991edaae756"
+sts_info <- fromJSON(sts_api, simplifyVector = TRUE)
+
+#airline
+airline <- read.csv("GrobalAirlineDatabase.csv", header = T)
+airline %<>% select(-code, -Country) 
+
+
+#sanky
+dep <- read.csv("airport_id.csv", stringsAsFactors = T, fileEncoding = "UTF-8-BOM")
+
+#########################
+  arr_info_sel <- arr_info %>% select(#`odpt:airline`,
+                                      `odpt:flightNumber`,
+                                      #`odpt:aircraftType`,
+                                      #`odpt:originAirport`,
+                                      #`odpt:arrivalAirport`,
+                                      #`odpt:viaAirport`,
+                                      `odpt:scheduledArrivalTime`,
+                                      #`odpt:estimatedDepartureTime`,
+                                      `odpt:actualArrivalTime`,
+                                      `odpt:arrivalAirportTerminal`,
+                                      `odpt:arrivalGate`,
+                                      `odpt:flightStatus`
+                                      #`odpt:checkInCounter`,
+                                      #`odpt:flightInformationText`,
+                                      #`odpt:flightInformationSummary`
+  )
+  
+  #arr_info_sel$summary_ja <- paste(arr_info$`odpt:flightInformationSummary`$ja,
+  #                                 arr_info$`odpt:flightInformationText`$ja,
+  #                                 sep = ".")
+  
+  #arr_info_sel$summary_en<-  paste(arr_info$`odpt:flightInformationSummary`$en,
+  #                                 arr_info$`odpt:flightInformationText`$en,
+  #                                 sep = ".")
+  
+  #arr_info_sel %<>% select(-`odpt:flightInformationText`, -`odpt:flightInformationSummary`) 
+  
+  #arr_info_sel$`odpt:airline` %<>% str_remove_all("odpt.Operator:")
+  #arr_info_sel$`odpt:originAirport` %<>% str_remove_all("odpt.Airport:")
+  #arr_info_sel$`odpt:arrivalAirport` %<>% str_remove_all("odpt.Airport:")
+  arr_info_sel$`odpt:arrivalAirportTerminal` %<>% str_remove_all("odpt.AirportTerminal:")
+  arr_info_sel$`odpt:flightStatus` %<>% str_remove_all("odpt.FlightStatus:") 
+  arr_info_sel %<>% unnest(`odpt:flightNumber`) 
+  
+  
+  colnames(arr_info_sel) <- c(#"airline",
+                              "flight_No",
+                              #"dep",
+                              #"arr",
+                              #"via",
+                              "schedule_arr",
+                              #"estimate_dep",
+                              "act_arr",
+                              "arr_terminal",
+                              "arr_gate",
+                              "arr_Status"
+                              #"counter",
+                              #"text_ja",
+                              #"text_en"
+  )
+  
+  arr_info_sel  %<>%  distinct(flight_No, .keep_all = T) #%>% 
+  #  left_join(airline, by = "airline") %>% 
+  #  filter(Callsign != "J-BIRD") 
+  #arr_info_sel %<>% select(-Callsign)
+  
+  
+  
+  ###############dep###########################################
+  
+  dep_info_sel <- dep_info %>% select(`odpt:airline`,
+                                      `odpt:flightNumber`,
+                                      #`odpt:aircraftType`,
+                                      `odpt:departureAirport`,
+                                      `odpt:destinationAirport`,
+                                      #`odpt:viaAirport`,
+                                      `odpt:scheduledDepartureTime`,
+                                      #`odpt:estimatedDepartureTime`,
+                                      `odpt:actualDepartureTime`,
+                                      `odpt:departureAirportTerminal`,
+                                      `odpt:departureGate`,
+                                      `odpt:flightStatus`,
+                                      #`odpt:checkInCounter`,
+                                      `odpt:flightInformationText`,
+                                      `odpt:flightInformationSummary`
+  )
+  
+  dep_info_sel$summary_ja <- paste(dep_info$`odpt:flightInformationSummary`$ja,
+                                   dep_info$`odpt:flightInformationText`$ja,
+                                   sep = ".")
+  
+  dep_info_sel$summary_en<-  paste(dep_info$`odpt:flightInformationSummary`$en,
+                                   dep_info$`odpt:flightInformationText`$en,
+                                   sep = ".")
+  
+  dep_info_sel %<>% select(-`odpt:flightInformationText`, -`odpt:flightInformationSummary`) 
+  #dep_info_sel$`odpt:checkInCounter` %<>% as.character() %>% str_remove_all("c")  
+  #dep_info_sel$`odpt:flightNumber` %<>% as.character() %>% str_remove_all("c")  
+  
+  
+  
+  dep_info_sel$`odpt:airline` %<>% str_remove_all("odpt.Operator:")
+  dep_info_sel$`odpt:departureAirport` %<>% str_remove_all("odpt.Airport:")
+  dep_info_sel$`odpt:destinationAirport` %<>% str_remove_all("odpt.Airport:")
+  #dep_info_sel$`odpt:viaAirport` %<>% str_remove_all("odpt.Airport:")
+  dep_info_sel$`odpt:departureAirportTerminal` %<>% str_remove_all("odpt.AirportTerminal:")
+  dep_info_sel$`odpt:flightStatus` %<>% str_remove_all("odpt.FlightStatus:") 
+  dep_info_sel %<>% unnest(`odpt:flightNumber`) 
+  
+  
+  colnames(dep_info_sel) <- c("airline",
+                              "flight_No",
+                              "dep",
+                              "arr",
+                              #"via",
+                              "schedule_dep",
+                              #"estimate_dep",
+                              "act_dep",
+                              "dep_terminal",
+                              "dep_gate",
+                              "dep_Status",
+                              #"counter",
+                              "text_ja",
+                              "text_en"
+  )
+  
+  dep_info_sel  %<>%  distinct(flight_No, .keep_all = T) %>% 
+    left_join(airline, by = "airline") %>% 
+    filter(Callsign != "J-BIRD") 
+  dep_info_sel %<>% select(-Callsign)
+  
+  ###############################
+  dep_info_sel <- left_join(dep_info_sel, arr_info_sel, by = "flight_No") 
+  dep_info_sel %<>% select(Name, flight_No, schedule_dep, act_dep, dep_terminal, dep_gate, dep_Status,
+                           schedule_arr,  act_arr, arr_terminal, arr_gate, arr_Status, text_ja, text_en) 
+  ##############################
+  now <- Sys.time()
+###############################
+icon2 <- makeIcon(
+  iconUrl = "airport_r.png",
+  iconWidth = 35, iconHeight = 35,
+  iconAnchorX = 35, iconAnchorY = 35,
+  shadowUrl = "airport_r.png",
+  shadowWidth = 35, shadowHeight = 35,
+  shadowAnchorX = 35, shadowAnchorY = 35)
+
+icon3 <- makeIcon(
+  iconUrl = "plane.png",
+  iconWidth = 35, iconHeight = 35,
+  iconAnchorX = 35, iconAnchorY = 35,
+  shadowUrl = "plane.png",
+  shadowWidth = 35, shadowHeight = 35,
+  shadowAnchorX = 35, shadowAnchorY = 35)
+
+icon4 <- makeIcon(
+  iconUrl = "sight.png",
+  iconWidth = 35, iconHeight = 35,
+  iconAnchorX = 35, iconAnchorY = 35,
+  shadowUrl = "sight.png",
+  shadowWidth = 35, shadowHeight = 35,
+  shadowAnchorX = 35, shadowAnchorY = 35)
