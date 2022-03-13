@@ -5,9 +5,10 @@ account: sub-dskr
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 5806003
-bundleId: 5659303
+bundleId: 5665936
 url: https://sub-dskr.shinyapps.io/weather_forecast/
-when: 1646795695.12571
-lastSyncTime: 1646795695.12572
+when: 1646911392.2665
+lastSyncTime: 1646911392.26654
 asMultiple: FALSE
 asStatic: FALSE
+ignoredFiles: img/def_param.png|img/weather_code.png

@@ -5,6 +5,47 @@ library(leaflet.extras)
 
 shinyServer(function(input, output, session) {
     
+    output$parameters <- renderDataTable({
+        
+        parameters <- read_csv("text/parameters.csv")
+        
+        DT::datatable(parameters,
+                      # # filter='top',
+                      rownames = F,
+                      extensions = 'FixedColumns',
+                      # # extensions = c('Buttons'), 
+                      # selection = "single",
+                      # # escape = FALSE, style = 'bootstrap', class = 'table-bordered table-condensed',
+                      options = list(
+                          dom = 't',
+                          scrollX = TRUE,
+                          scrollCollapse = TRUE
+                      )
+                      )
+        
+    })
+    
+    output$weathercode <- renderDataTable({
+        
+        weathercode <- read_csv("text/weather_code.csv")
+        
+        DT::datatable(weathercode,
+                      # # filter='top',
+                      rownames = F,
+                      extensions = 'FixedColumns',
+                      # # extensions = c('Buttons'), 
+                      # selection = "single",
+                      # # escape = FALSE, style = 'bootstrap', class = 'table-bordered table-condensed',
+                      options = list(
+                          dom = 't',
+                          scrollX = TRUE,
+                          scrollCollapse = TRUE
+                      )
+        )
+        
+    })
+    
+    
     # table
     output$table <- renderDataTable({
         # open meteo
@@ -199,13 +240,36 @@ shinyServer(function(input, output, session) {
         nowtime <- (Sys.time() + 60 * 60 * 9) %>% as.character()
     })
     
-    output$def_param <- renderImage({
-        return(list(src = "img/def_param.png",width = "100%", height = "300px", contentType = "image/png",alt = "Alignment"))
-    }, deleteFile = FALSE) 
+    # output$def_param <- renderImage({
+    #     return(list(src = "img/def_param.png",
+    #                 width = "80%",
+    #                 # height = "300px",
+    #                 contentType = "image/png",
+    #                 alt = "Alignment"))
+    # }, deleteFile = FALSE) 
+    # 
+    # output$weather_code <- renderImage({
+    #     return(list(src = "img/weather_code.png",
+    #                 width = "80%",
+    #                 # height = "300px",
+    #                 contentType = "image/png",
+    #                 alt = "Alignment"))
+    # }, deleteFile = FALSE) 
     
-    output$weather_code <- renderImage({
-        return(list(src = "img/weather_code.png",width = "100%", height = "300px", contentType = "image/png",alt = "Alignment"))
-    }, deleteFile = FALSE) 
+    # output$now_lat <- renderPrint({
+    #     input$trigger2
+    #     input$lat
+    # })
+    # 
+    # output$now_lon <- renderPrint({
+    #     input$trigger2
+    #     input$lon
+    # })
+    # 
+    # output$geolocation <- renderPrint({
+    #     input$trigger2
+    #     input$geolocation
+    # })
     
     
 })

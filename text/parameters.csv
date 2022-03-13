@@ -1,0 +1,10 @@
+﻿パラメータ名,意味,単位
+cloudcover,総雲量,%
+direct_radiation,直射日光,W/m^2
+precipitation,降水量,mm
+pressure_msl,気圧,hpa
+relativehumidity_2m,相対湿度(地上2m),%
+snow_depth,積雪深,m
+temperature_2m,気温(地上2m),℃
+windspeed_10m,風速(地上10m),m/s
+weathercode,気象解釈コード,-

@@ -16,8 +16,11 @@ ui <- dashboardPage(
         title = "Weather Forecast App"
     ),
     # 
+    
+    
     dashboardSidebar(
         sidebarMenu(
+           
             menuItem("マニュアル", tabName = "Manual", icon = icon("th")),
             
             menuItem("地図・グラフ", tabName = "Map", icon = icon("map-marker")),
@@ -33,6 +36,7 @@ ui <- dashboardPage(
                         label = "パラメータ",
                         selected = "temperature_2m"),
             
+            # actionButton("trigger2", label = "現在位置情報入力", style="color: #fff; background-color: #337ab7; border-color: red"),
             actionButton("trigger", label = "更新", style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
             
             # menuItem("3.グラフ", tabName = "Graph"),
@@ -73,14 +77,14 @@ ui <- dashboardPage(
                         height = "auto",
                         title = "取得パラメータ",
                         status = "info",
-                        imageOutput("def_param", height = "auto")
+                        dataTableOutput("parameters", height = "auto")
                     ),
                     box(
                         width = 6,
                         height = "auto",
                         title = "気象解釈コード",
                         status = "info",
-                        imageOutput("weather_code", height = "auto")
+                        dataTableOutput("weathercode", height = "auto")
                     )
                     
                     

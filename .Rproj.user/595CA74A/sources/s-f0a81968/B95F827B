@@ -3,7 +3,7 @@
     "path": "~/foobar/Study/weather_forecast_app/weather_forecast/server.R",
     "project_path": "server.R",
     "type": "r_source",
-    "hash": "1663297599",
+    "hash": "0",
     "contents": "",
     "dirty": false,
     "created": 1646660980809.0,
@@ -12,15 +12,15 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "188,30",
-        "scrollLine": "156"
+        "cursorPosition": "232,10",
+        "scrollLine": "232"
     },
     "folds": "",
-    "lastKnownWriteTime": 1646795681,
+    "lastKnownWriteTime": 1647175521,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1646795681414,
+    "last_content_update": 1647175521404,
     "read_only": false,
     "read_only_alternatives": []
 }
